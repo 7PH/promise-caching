@@ -1,1 +1,5 @@
-# Promise-Cache
+# Promise-Caching
+
+- [X] Code
+- [ ] Test
+- [ ] Document
