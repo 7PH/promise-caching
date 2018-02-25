@@ -1,3 +1,3 @@
 
 
-export * from './promise-cache/PromiseCache';
+export * from './promise-caching/PromiseCaching';

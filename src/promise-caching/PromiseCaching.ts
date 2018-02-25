@@ -6,15 +6,15 @@ export interface CachedObject {
     data: any;
 }
 
-export class PromiseCache {
+export class PromiseCaching {
 
-    private static readonly cached: Map<string, CachedObject> = new Map();
+    private static readonly cached: Map<any, CachedObject> = new Map();
 
-    private static readCache(key: string): CachedObject | undefined {
-        return PromiseCache.cached.get(key);
+    private static readCache(key: any): CachedObject | undefined {
+        return PromiseCaching.cached.get(key);
     }
 
-    private static regenCache<T>(key: string, expire: number, generator: () => Promise<T>): Promise<T> {
+    private static regenCache<T>(key: any, expire: number, generator: () => Promise<T>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             // init new cache that will be generated
             const cache: CachedObject = {
@@ -23,7 +23,7 @@ export class PromiseCache {
                 unresolved: [],
                 data: null
             };
-            PromiseCache.cached.set(key, cache);
+            PromiseCaching.cached.set(key, cache);
 
             // generated it
             generator()
@@ -38,30 +38,32 @@ export class PromiseCache {
                     for (let i = 0; i < cache.unresolved.length; ++ i)
                         cache.unresolved[i](data);
 
+                    cache.unresolved = [];
+
                     // trigger the cache deletion
                     setTimeout(() => {
-                        PromiseCache.cached.delete(key);
+                        PromiseCaching.cached.delete(key);
                     }, expire);
 
                     // resolves this Promise
                     resolve(data);
 
                 }).catch((d: any) => {
-                PromiseCache.cached.delete(key);
+                PromiseCaching.cached.delete(key);
 
                 reject(d);
             });
         });
     }
 
-    public static get<T>(key: string, expire?: number, generator?: () => Promise<T>): Promise<T> {
+    public static get<T>(key: any, expire?: number, generator?: () => Promise<T>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
-            let cache: CachedObject | undefined = PromiseCache.readCache(key);
+            let cache: CachedObject | undefined = PromiseCaching.readCache(key);
 
             if (cache == null) {
                 if (generator != null) {
                     // SHOULD and CAN generate cache
-                    return PromiseCache.regenCache(key, expire || -1, generator)
+                    return PromiseCaching.regenCache(key, expire || -1, generator)
                         .then((data: T) => {
                             resolve(data);
                         }).catch((d: any) => {
