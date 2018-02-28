@@ -71,12 +71,7 @@ export class PromiseCaching {
                         });
                 } else {
                     // SHOULD but CANNOT generate cache
-                    if (cache != null) {
-                        // Give expired cache, that is the best we can do
-                        return resolve();
-                    } else {
-                        return reject(new Error("Cache does not exists and generator was not provided"));
-                    }
+                    return reject(new Error("Cache does not exists and generator was not provided"));
                 }
             } else if (cache.state === 'generating') {
                 cache.unresolved.push(resolve);
