@@ -1,10 +1,4 @@
-
-export interface CachedObject {
-    state: 'generating' | 'generated';
-    created: number;
-    unresolved: ((d: any) => any)[];
-    data: any;
-}
+import {CachedObject} from "./CachedObject";
 
 export class PromiseCaching {
 
