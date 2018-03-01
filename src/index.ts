@@ -1,4 +1,4 @@
 
 
 export * from './promise-caching/PromiseCaching';
-export * from './promise-caching/CachedObject';
+export * from './promise-caching/CachedRecord';
