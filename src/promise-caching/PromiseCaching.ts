@@ -42,11 +42,10 @@ export class PromiseCaching {
                     // resolves this Promise
                     resolve(data);
 
-                }).catch((d: any) => {
-                this.cached.delete(key);
-
-                reject(d);
-            });
+                }).catch((e: any) => {
+                    this.cached.delete(key);
+                    reject(e);
+                });
         });
     }
 
