@@ -8,24 +8,24 @@ describe('PromiseCaching', function () {
     describe('#get(key, expire?, generator?)', function () {
 
 
-        // promise - resolves in 100ms with value '32'
+        // promise - resolves in 'duration' ms with value '32'
         let generatorCalls: number = 0;
-        let generator: () => Promise<number> = () => {
+        let generator: (duration: number) => Promise<number> = (duration: number) => {
             ++ generatorCalls;
             return new Promise<number>(resolve => {
                 setTimeout(() => {
                     return resolve(32)
-                }, 100);
+                }, duration);
             });
         };
 
-        it('cache is kept in memory for \'expire\' ms >after< generator is done', function (done) {
+        it('cache is kept in memory for \'expire\' ms >after< generator has resolved', function (done) {
             this.timeout(200);
 
             let p: PromiseCaching = new PromiseCaching();
 
             // registers '32.0' as 'mykey' - generation takes 100ms, expiration is 100ms
-            p.get<number>('mykey', 100, generator);
+            p.get<number>('mykey', 100, generator.bind(this, 100));
 
             // checks that in 150ms the cache is still valid
             // it means that the cache validity is counted as the cache is done generating
@@ -50,18 +50,61 @@ describe('PromiseCaching', function () {
         it('cache is only generated once', function (done) {
             let p: PromiseCaching = new PromiseCaching();
             generatorCalls = 0;
-            Promise.all([
-                // registers '32.0' as 'mykey' - generation takes 100ms, expiration is 100ms
-                p.get<number>('mykey', 100, generator),
-                // generation is not done again - it wait for the first promise to resolve
-                p.get<number>('mykey', 100, generator)
-            ]).then((d) => {
-                if (d[0] == 32 && d[1] == 32 && generatorCalls == 1) done();
+
+            let promises: Array<Promise<number>> = [];
+            for (let i = 0; i < 200; i ++) {
+                promises.push(
+                    p.get<number>(
+                        'mykey',
+                        100,
+                        generator.bind(this, 100)
+                    )
+                );
+            }
+            Promise.all(promises).then((d) => {
+                for (let i = 0; i < d.length; ++ i) {
+                    if (d[i] != 32) return done(new Error("Expected value of 32"));
+                }
+                if (generatorCalls == 1) done();
                 else done(new Error("Expected 32"));
             }).catch(done);
 
             this.timeout(120);
         });
+
+
+
+
+        it('error is thrown when no generator and expired cache', function (done) {
+            let p: PromiseCaching = new PromiseCaching();
+            p.get<number>('mykey', 100)
+                .then(() => {
+                    done(new Error("Should not resolve"));
+                }).catch((error) => {
+                done();
+            });
+        });
+
+
+
+        it('cache is destroyed after expiration time', function (done) {
+            let p: PromiseCaching = new PromiseCaching();
+            generatorCalls = 0;
+            p.get<number>('mykey', 100, generator.bind(this, 0));
+            setTimeout(() => {
+                // 'mykey' has expired now
+                p.get<number>('mykey', 100, generator.bind(this, 0));
+
+                setTimeout(() => {
+                    if (generatorCalls == 2) {
+                        done();
+                    } else {
+                        done(new Error("Cache should have been regenerated"));
+                    }
+                }, 50);
+            },200);
+        });
+
 
     });
 });
