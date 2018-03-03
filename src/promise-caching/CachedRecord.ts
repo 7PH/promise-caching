@@ -1,7 +1,6 @@
 
-export interface CachedRecord {
+export interface CachedRecord<T> {
     state: 'generating' | 'generated';
     created: number;
-    unresolved: ((d: any) => any)[];
-    data: any;
+    promise: Promise<T>;
 }
