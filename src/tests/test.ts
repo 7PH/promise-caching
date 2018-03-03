@@ -63,7 +63,7 @@ describe('PromiseCaching', function () {
             }
             Promise.all(promises).then((d) => {
                 for (let i = 0; i < d.length; ++ i) {
-                    if (d[i] != 32) return done(new Error("Expected value of 32"));
+                    if (d[i] != 32) return done(new Error("Expected 32"));
                 }
                 if (generatorCalls == 1) done();
                 else done(new Error("Expected 32"));
@@ -103,6 +103,23 @@ describe('PromiseCaching', function () {
                     }
                 }, 50);
             },200);
+        });
+
+
+
+        it('works with any key', function (done) {
+            let p: PromiseCaching = new PromiseCaching();
+            let k1: any = {a: 1};
+
+            generatorCalls = 0;
+            p.get<number>(k1, 100, generator.bind(this, 50));
+
+            p.get<number>(k1, 100)
+                .then(data => {
+                    if (data == 32) done();
+                    else done(new Error("Expected 32"));
+                }).catch(done);
+
         });
 
 
