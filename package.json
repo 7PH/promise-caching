@@ -1,32 +1,34 @@
 {
-  "name": "promise-caching",
-  "version": "0.0.8",
-  "description": "In-memory cache system for promises in JavaScript/TypeScript",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "dependencies": {},
-  "devDependencies": {
-    "@types/mocha": "^2.2.48",
-    "@types/node": "^9.4.6",
-    "mocha": "^5.0.1"
-  },
-  "scripts": {
-    "test": "mocha dist/tests/test.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/7PH/Promise-Cache.git"
-  },
-  "keywords": [
-    "promise",
-    "cache",
-    "caching",
-    "typescript"
-  ],
-  "author": "Benjamin Raymond <b.raymond@protonmail.com>",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/7PH/Promise-Cache/issues"
-  },
-  "homepage": "https://github.com/7PH/Promise-Cache#readme"
+    "name": "promise-caching",
+    "version": "0.0.8",
+    "description": "In-memory cache system for promises in JavaScript/TypeScript",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "dependencies": {},
+    "devDependencies": {
+        "@types/mocha": "^2.2.48",
+        "@types/node": "^9.4.6",
+        "mocha": "^5.0.1"
+    },
+    "scripts": {
+        "clean": "rm -rf ./dist;",
+        "build": "npm run clean; tsc;",
+        "test": "npm run build; mocha dist/tests/test.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/7PH/Promise-Cache.git"
+    },
+    "keywords": [
+        "promise",
+        "cache",
+        "caching",
+        "typescript"
+    ],
+    "author": "Benjamin Raymond <b.raymond@protonmail.com>",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/7PH/Promise-Cache/issues"
+    },
+    "homepage": "https://github.com/7PH/Promise-Cache#readme"
 }

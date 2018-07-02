@@ -1,8 +1,8 @@
 # Promise-Caching
 
 - [X] Code
-- [x] Test
-- [ ] Document
+- [X] Test
+- [X] Document
 
 ## How does it works?
 

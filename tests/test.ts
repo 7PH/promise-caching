@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import {PromiseCaching} from "../";
+import {PromiseCaching} from "../src/index";
 
 describe('PromiseCaching', function () {
     this.slow(10000);
