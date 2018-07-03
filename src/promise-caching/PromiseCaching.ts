@@ -8,6 +8,13 @@ export class PromiseCaching {
         return this.cached.get(key);
     }
 
+    /**
+     * Regenerates cache
+     * @param key
+     * @param {number} expire
+     * @param {() => Promise<T>} generator
+     * @returns {Promise<T>}
+     */
     private regenCache<T>(key: any, expire: number, generator: () => Promise<T>): Promise<T> {
         let promise: Promise<T> = new Promise<T>((resolve, reject) => {
             // generate it
@@ -43,6 +50,13 @@ export class PromiseCaching {
         return promise;
     }
 
+    /**
+     * Get a value from the cache. Generate it if expired or non existent
+     * @param key Key
+     * @param {number} expire Expire time in milliseconds
+     * @param {() => Promise<T>} generator Generator function
+     * @returns {Promise<T>} Value
+     */
     public get<T>(key: any, expire?: number, generator?: () => Promise<T>): Promise<T> {
         let cache: CachedRecord<T> | undefined = this.readCache<T>(key);
 
