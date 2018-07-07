@@ -15,6 +15,8 @@ When you set 'returnExpired' to true, retrieving an expired promise won't hang. 
 
 ## Usage
 
+Here is a TypeScript example of how you can use PromseCaching.
+
 ```typescript
 import {PromiseCaching} from "../src";
 
