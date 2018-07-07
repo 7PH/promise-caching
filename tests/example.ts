@@ -37,4 +37,9 @@ let cache: PromiseCaching = new PromiseCaching({ returnExpired: true });
     // if 'returnExpired' is false,
     //      the promise will be resolved when the new generation is done
 
+    // you can use whatever key you want for caching
+    let key: any = {a: 1};
+
+    await cache.get(key, 2000, () => getRandom());
+    await cache.get(key, 2000, () => getRandom());
 })();
