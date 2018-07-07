@@ -1,7 +1,7 @@
 {
     "name": "promise-caching",
-    "version": "1.0.1",
-    "description": "In-memory cache system for promises in JavaScript/TypeScript",
+    "version": "1.1.0",
+    "description": "In-memory cache system with custom keys for promises in JavaScript/TypeScript",
     "main": "./dist/src/index.js",
     "types": "./dist/src/index.d.ts",
     "dependencies": {},

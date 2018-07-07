@@ -1,6 +1,6 @@
 
 export interface CachedRecord<T> {
-    state: 'generating' | 'generated';
-    created: number;
+    expired: boolean;
     promise: Promise<T>;
+    nextPromise?: Promise<T>;
 }

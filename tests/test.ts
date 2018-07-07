@@ -1,30 +1,35 @@
-import * as assert from "assert";
 import {PromiseCaching} from "../src/index";
+import {isNumber} from "util";
 
 describe('PromiseCaching', function () {
     this.slow(10000);
-
+    async function sleep(ms: number): Promise<void> {
+        return new Promise<void>(resolve => setTimeout(resolve.bind(this), ms));
+    }
 
     describe('#get(key, expire?, generator?)', function () {
 
+        // dummy values
+        const DUMMY_KEY_A: string = 'key';
+        const DUMMY_VALUE_A: number = 32;
 
-        // promise - resolves in 'duration' ms with value '32'
+        // promise - resolves in 'duration' ms with value 'DUMMY_VALUE_A'
         let generatorCalls: number = 0;
         let generator: (duration: number) => Promise<number> = (duration: number) => {
             ++ generatorCalls;
             return new Promise<number>(resolve => {
                 setTimeout(() => {
-                    return resolve(32)
+                    return resolve(DUMMY_VALUE_A)
                 }, duration);
             });
         };
 
-        it('cache is kept in memory for \'expire\' ms >after< generator has resolved', function (done) {
+        it('cache is kept in memory for \'expire\' ms AFTER generator is resolved', function (done) {
             this.timeout(200);
 
             let p: PromiseCaching = new PromiseCaching();
 
-            // registers '32.0' as 'mykey' - generation takes 100ms, expiration is 100ms
+            // registers 'DUMMY_VALUE_A' as 'mykey' - generation takes 100ms, expiration is 100ms
             p.get<number>('mykey', 100, generator.bind(this, 100));
 
             // checks that in 150ms the cache is still valid
@@ -32,7 +37,7 @@ describe('PromiseCaching', function () {
             setTimeout(() => {
                 p.get<number>('mykey')
                     .then((d) => {
-                        if (d === 32) {
+                        if (d === DUMMY_VALUE_A) {
                             done();
                         } else {
                             done(new Error("Incorrect value"));
@@ -63,10 +68,10 @@ describe('PromiseCaching', function () {
             }
             Promise.all(promises).then((d) => {
                 for (let i = 0; i < d.length; ++ i) {
-                    if (d[i] != 32) return done(new Error("Expected 32"));
+                    if (d[i] != DUMMY_VALUE_A) return done(new Error("Expected DUMMY_VALUE_A"));
                 }
                 if (generatorCalls == 1) done();
-                else done(new Error("Expected 32"));
+                else done(new Error("Expected " + DUMMY_VALUE_A));
             }).catch(done);
 
             this.timeout(120);
@@ -116,10 +121,40 @@ describe('PromiseCaching', function () {
 
             p.get<number>(k1, 100)
                 .then(data => {
-                    if (data == 32) done();
-                    else done(new Error("Expected 32"));
+                    if (data == DUMMY_VALUE_A) done();
+                    else done(new Error("Expected " + DUMMY_VALUE_A));
                 }).catch(done);
 
+        });
+
+
+        it('return immediately when \'returnExpired\' is set to true', async function () {
+            let timeUnit: number = 50;
+            let p: PromiseCaching = new PromiseCaching({ returnExpired: true });
+            const genFunc: () => Promise<number> = generator.bind(this, timeUnit);
+            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc());
+            await sleep(2 * timeUnit);
+            // expired
+            let t1 = Date.now();
+            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc())
+            let duration = Date.now() - t1;
+            if (duration >= timeUnit)
+                throw new Error("Should have returned expired cache");
+        });
+
+
+        it('return a new promise when \'returnExpired\' is set to false', async function () {
+            let timeUnit: number = 50;
+            let p: PromiseCaching = new PromiseCaching({ returnExpired: false });
+            const genFunc: () => Promise<number> = generator.bind(this, timeUnit);
+            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc());
+            await sleep(2 * timeUnit);
+            // expired
+            let t1 = Date.now();
+            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc())
+            let duration = Date.now() - t1;
+            if (duration < timeUnit)
+                throw new Error("Should not have returned expired cache");
         });
 
 
