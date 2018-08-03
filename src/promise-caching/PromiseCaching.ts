@@ -1,7 +1,8 @@
 import {CachedRecord} from "./CachedRecord";
 import {CachingConfig} from "./CachingConfig";
+import {IPromiseCaching} from "./IPromiseCaching";
 
-export class PromiseCaching {
+export class PromiseCaching implements IPromiseCaching {
 
     private readonly cached: Map<any, CachedRecord<any>> = new Map();
 
@@ -22,6 +23,7 @@ export class PromiseCaching {
      * @returns {CachedRecord<T> | undefined}
      */
     private readCache<T>(key: any): CachedRecord<T> | undefined {
+
         return this.cached.get(key);
     }
 
@@ -30,13 +32,30 @@ export class PromiseCaching {
      * @param key
      */
     private expireCache<T>(key: any): void {
+
+        let value: CachedRecord<T> | undefined = this.readCache<T>(key);
+
         if (this.config.returnExpired) {
-            let value: CachedRecord<T> | undefined = this.readCache<T>(key);
+
             if (typeof value !== 'undefined')
                 value.expired = true;
         } else {
+
             this.cached.delete(key);
         }
+    }
+
+    /**
+     *
+     * @param entry
+     * @param expire
+     */
+    private triggerCacheExpire<T>(entry: CachedRecord<T>, expire: number): void {
+
+        if (typeof entry.expire !== 'undefined')
+            clearTimeout(entry.expire);
+
+        entry.expire = setTimeout(() => this.expireCache<T>(entry.key), expire);
     }
 
     /**
@@ -55,10 +74,12 @@ export class PromiseCaching {
                 .then((data: T) => {
 
                     // trigger the cache expiring
-                    setTimeout(() => this.expireCache<T>(key), expire);
+                    this.triggerCacheExpire(entry, expire);
 
                     if (typeof entry.nextPromise !== 'undefined') {
+
                         entry.promise = entry.nextPromise;
+
                         delete entry.nextPromise;
                     }
 
@@ -72,14 +93,18 @@ export class PromiseCaching {
         });
 
         let oldEntry: CachedRecord<T> | undefined = this.cached.get(key);
+
         if (typeof oldEntry === 'undefined') {
             // init new cache that will be generated
             const cache: CachedRecord<T> = {
+                key: key,
                 expired: false,
                 promise: promise
             };
             this.cached.set(key, cache);
+
         } else {
+
             oldEntry.nextPromise = promise;
         }
 
@@ -113,5 +138,30 @@ export class PromiseCaching {
             }
             return cache.promise;
         }
+    }
+
+    /**
+     * @TODO test
+     * @param key
+     * @param expire
+     * @param value
+     */
+    public store<T>(key: any, expire: number, value: T): void {
+
+        let record: CachedRecord<T> | undefined = this.cached.get(key);
+
+        if (typeof record === 'undefined') {
+
+            // record did not exist
+            record = {key: key, expired: false, promise: Promise.resolve<T>(value)};
+            this.cached.set(key, record);
+
+        } else {
+
+            // update record
+            record.promise = Promise.resolve<T>(value);
+        }
+
+        this.triggerCacheExpire(record, expire);
     }
 }
