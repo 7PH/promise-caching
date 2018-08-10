@@ -1,11 +1,10 @@
-# Promise-Caching
+# promise-caching
 
-Let's suppose you have a high cost function that returns a promise. This library allows you to:
+Asynchronous in-memory cache-system working with promises
 
-- cache its result for a specified amount of time
-- decide whether you want to return the expired cache or force regeneration when it expires
+Typical use-case: you have a function returning a promise with high computing cost.
 
-## Time chart
+## time chart
 
 Here is a chart of what's happening when you set 'returnExpired' to false
 
@@ -15,7 +14,7 @@ When you set 'returnExpired' to true, retrieving an expired promise won't hang. 
 
 ## Usage
 
-Here is a TypeScript example of how you can use PromseCaching.
+Here is an example of how you can use promise-caching.
 
 ```typescript
 import {PromiseCaching} from "../src";
@@ -25,30 +24,35 @@ async function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve.bind(this), ms));
 }
 
-// high cost function which take 1s to complete
+// high cost function
 async function getRandom() {
     await sleep(1000);
     return Math.random();
 }
 
-// your cache object
+// cached function
+async function getRandomCached(key: any) {
+    return cache.get(key, 2000, getRandom);
+}
+// your cache instance
 let cache: PromiseCaching = new PromiseCaching({ returnExpired: true });
+
 
 (async () => {
 
     // cache did not exist. this call takes 1 second
-    await cache.get('random', 2000, getRandom);
+    await getRandomCached('random');
 
     // starting from now, cache will be valid 2 seconds
 
     // this call will be instantaneous
-    await cache.get('random', 2000, getRandom);
+    await getRandomCached('random');
 
     // we wait for the cache to expire
     await sleep(2000);
 
     // the cache has expired now
-    await cache.get('random', 2000, getRandom);
+    await getRandomCached('random');
 
     // if 'returnExpired' is true,
     //      the value will be instantaneously returned and the cache
@@ -60,7 +64,7 @@ let cache: PromiseCaching = new PromiseCaching({ returnExpired: true });
     // you can use whatever key you want for caching
     let key: any = {a: 1};
 
-    await cache.get(key, 2000, getRandom);
-    await cache.get(key, 2000, getRandom);
+    await getRandomCached(key);
+    await getRandomCached(key);
 })();
 ```
