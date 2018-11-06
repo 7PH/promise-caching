@@ -16,122 +16,97 @@ describe('PromiseCaching', function () {
 
         // promise - resolves in 'duration' ms with value 'DUMMY_VALUE_A'
         let generatorCalls: number = 0;
-        let generator: (duration: number) => Promise<number> = (duration: number) => {
-            ++generatorCalls;
-            return new Promise<number>(resolve => {
-                setTimeout(() => {
-                    return resolve(DUMMY_VALUE_A)
-                }, duration);
-            });
-        };
 
-        it('cache is kept in memory for \'expire\' ms AFTER generator is resolved', function (done) {
+        async function generator(duration: number): Promise<number> {
+            ++generatorCalls;
+            await sleep(duration);
+            return DUMMY_VALUE_A;
+        }
+
+        beforeEach(function () {
+            this.cache = new PromiseCaching({returnExpired: false});
+            this.cacheExpired = new PromiseCaching({returnExpired: true});
+            generatorCalls = 0;
+        });
+
+        it('cache is kept in memory for \'expire\' ms AFTER generator is resolved', async function () {
+
             this.timeout(200);
 
-            let p: PromiseCaching = new PromiseCaching();
-
             // registers 'DUMMY_VALUE_A' as 'mykey' - generation takes 100ms, expiration is 100ms
-            p.get<number>('mykey', 100, generator.bind(this, 100));
+            this.cache.get('mykey', 100, () => generator(100));
 
             // checks that in 150ms the cache is still valid
             // it means that the cache validity is counted as the cache is done generating
-            setTimeout(() => {
-                p.get<number>('mykey')
-                    .then((d) => {
-                        if (d === DUMMY_VALUE_A) {
-                            done();
-                        } else {
-                            done(new Error("Incorrect value"));
-                        }
-                    })
-                    .catch((e) => {
-                        done(e);
-                    });
-            }, 150);
+            await sleep(150);
+            const d = await this.cache.get('mykey');
+            if (d !== DUMMY_VALUE_A)
+                throw new Error("Incorrect value");
         });
 
 
-        it('cache is only generated once', function (done) {
-            let p: PromiseCaching = new PromiseCaching();
-            generatorCalls = 0;
+        it('cache is only generated once', async function () {
+
+            this.timeout(120);
 
             let promises: Array<Promise<number>> = [];
             for (let i = 0; i < 200; i++) {
-                promises.push(
-                    p.get<number>(
-                        'mykey',
-                        100,
-                        generator.bind(this, 100)
-                    )
-                );
+                promises.push(this.cache.get('mykey', 100, () => generator(100)));
             }
-            Promise.all(promises).then((d) => {
-                for (let i = 0; i < d.length; ++i) {
-                    if (d[i] != DUMMY_VALUE_A) return done(new Error("Expected DUMMY_VALUE_A"));
-                }
-                if (generatorCalls == 1) done();
-                else done(new Error("Expected " + DUMMY_VALUE_A));
-            }).catch(done);
 
-            this.timeout(120);
+            const d = await Promise.all(promises);
+
+            for (let i = 0; i < d.length; ++i)
+                if (d[i] != DUMMY_VALUE_A)
+                    throw new Error("Expected DUMMY_VALUE_A");
+
+            if (generatorCalls !== 1)
+                throw new Error("Expected " + DUMMY_VALUE_A);
         });
 
 
         it('error is thrown when no generator and expired cache', function (done) {
-            let p: PromiseCaching = new PromiseCaching();
-            p.get<number>('mykey', 100)
+
+            this.cache.get('mykey', 100)
                 .then(() => {
                     done(new Error("Should not resolve"));
-                }).catch((error) => {
-                done();
-            });
+                })
+                .catch((error: Error) => {
+                    done();
+                });
         });
 
 
-        it('cache is destroyed after expiration time', function (done) {
-            let p: PromiseCaching = new PromiseCaching();
-            generatorCalls = 0;
-            p.get<number>('mykey', 100, generator.bind(this, 0));
-            setTimeout(() => {
-                // 'mykey' has expired now
-                p.get<number>('mykey', 100, generator.bind(this, 0));
-
-                setTimeout(() => {
-                    if (generatorCalls == 2) {
-                        done();
-                    } else {
-                        done(new Error("Cache should have been regenerated"));
-                    }
-                }, 50);
-            }, 200);
+        it('cache is destroyed after expiration time', async function () {
+            this.cache.get('mykey', 100, () => generator(0));
+            await sleep(200);
+            // 'mykey' has expired now
+            this.cache.get('mykey', 100, () => generator(0));
+            await sleep(50);
+            if (generatorCalls != 2)
+                throw new Error("Cache should have been regenerated");
         });
 
 
-        it('works with any key', function (done) {
-            let p: PromiseCaching = new PromiseCaching();
+        it('works with any key', async function () {
+
             let k1: any = {a: 1};
+            this.cache.get(k1, 100, () => generator(50));
 
-            generatorCalls = 0;
-            p.get<number>(k1, 100, generator.bind(this, 50));
-
-            p.get<number>(k1, 100)
-                .then(data => {
-                    if (data == DUMMY_VALUE_A) done();
-                    else done(new Error("Expected " + DUMMY_VALUE_A));
-                }).catch(done);
-
+            const data = await this.cache.get(k1, 100);
+            if (data !== DUMMY_VALUE_A)
+                throw new Error("Expected " + DUMMY_VALUE_A);
         });
 
 
         it('return immediately when \'returnExpired\' is set to true', async function () {
             let timeUnit: number = 50;
-            let p: PromiseCaching = new PromiseCaching({returnExpired: true});
             const genFunc: () => Promise<number> = generator.bind(this, timeUnit);
-            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc());
+            await this.cacheExpired.get(DUMMY_KEY_A, timeUnit, () => genFunc());
             await sleep(2 * timeUnit);
             // expired
             let t1 = Date.now();
-            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc());
+            await this.cacheExpired.get(DUMMY_KEY_A, timeUnit, () => genFunc());
             let duration = Date.now() - t1;
             if (duration >= timeUnit)
                 throw new Error("Should have returned expired cache");
@@ -140,13 +115,12 @@ describe('PromiseCaching', function () {
 
         it('return a new promise when \'returnExpired\' is set to false', async function () {
             let timeUnit: number = 50;
-            let p: PromiseCaching = new PromiseCaching({returnExpired: false});
-            const genFunc: () => Promise<number> = generator.bind(this, timeUnit);
-            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc());
+            const genFunc: () => Promise<number> = () => generator(timeUnit);
+            await this.cache.get(DUMMY_KEY_A, timeUnit, () => genFunc());
             await sleep(2 * timeUnit);
             // expired
             let t1 = Date.now();
-            await p.get<number>(DUMMY_KEY_A, timeUnit, () => genFunc());
+            await this.cache.get(DUMMY_KEY_A, timeUnit, () => genFunc());
             let duration = Date.now() - t1;
             if (duration < timeUnit)
                 throw new Error("Should not have returned expired cache");
