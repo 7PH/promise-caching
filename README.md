@@ -1,4 +1,4 @@
-# promise-caching
+# promise-caching <img src="https://api.travis-ci.com/7PH/promise-caching.svg?branch=master">
 
 Asynchronous in-memory cache-system working with promises
 
@@ -31,7 +31,7 @@ async function getRandom() {
 }
 
 // cached function
-async function getRandomCached(key: any) {
+function getRandomCached(key: any) {
     return cache.get(key, 2000, getRandom);
 }
 // your cache instance

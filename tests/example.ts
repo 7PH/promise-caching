@@ -12,7 +12,7 @@ async function getRandom() {
 }
 
 // cached function
-async function getRandomCached(key: any) {
+function getRandomCached(key: any) {
     return cache.get(key, 2000, getRandom);
 }
 // your cache instance
