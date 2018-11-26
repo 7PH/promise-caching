@@ -12,27 +12,43 @@ Typical use-case: you have a function returning a promise with high computing co
 Here is an execution chart of what is happening when you set 'returnExpired' to false
 
 ```text
-| ==>
-|  =>
-|   >
-|    >
-|     >
-|      ==>
-|       =>
-|        >
+ [id] |-------------> time
+  0   | ====>
+  1   |  ===>
+  2   |   ==>
+  3   |    =>
+  4   |     >
+  5   |      >
+  6   |       >
+  7   |        >
+  8   |         >
+  9   |          ====>
+ 10   |           ===>
+ 11   |            ==>
+ 12   |             =>
+ 13   |              >
+ 14   |               >
 ```
 
 When you set 'returnExpired' to true, retrieving an expired promise won't hang. Instead, it will return the expired promise and regenerate a new result in background.
 
 ```text
-| ==>
-|  =>
-|   >
-|    >
-|     >
-|      >
-|       >
-|        >
+ [id] |-------------> time
+  0   | ====>
+  1   |  ===>
+  2   |   ==>
+  3   |    =>
+  4   |     >
+  5   |      >
+  6   |       >
+  7   |        >
+  8   |         >
+  9   |          >
+ 10   |           >
+ 11   |            >
+ 12   |             >
+ 13   |              >
+ 14   |               >
 ```
 
 To build these execution charts, use 

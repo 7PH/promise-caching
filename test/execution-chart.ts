@@ -1,10 +1,10 @@
 import {PromiseCaching} from "../src";
 
-const RETURN_EXPIRED: boolean = false;
+const RETURN_EXPIRED: boolean = true;
 
-const EXPIRE: number = 60;
+const EXPIRE: number = 50;
 const RESOLVE_DURATION: number = 50;
-const TRIGGER_INTERVAL: number = 25;
+const TRIGGER_INTERVAL: number = 12;
 const TEST_DURATION: number = 180;
 const KEY: string = 'THEKEY';
 const durations: number[] = [];
@@ -38,9 +38,20 @@ async function trigger() {
  */
 function printResult() {
 
+    let maxIdLength: number = 2;
+
+    function formatId(id: number){
+        let out: string = id.toString();
+        while (out.length < maxIdLength)
+            out = " " + out;
+        return out;
+    }
+
+    process.stdout.write(" [id]" + " ".repeat(maxIdLength - 1) + "|-------------> time\n\r");
     for (let i: number = 0; i < durations.length; ++ i) {
 
-        process.stdout.write("| ");
+
+        process.stdout.write(" " + formatId(i) + "   | ");
         process.stdout.write(" ".repeat(i));
         const intervals: number = Math.floor(durations[i] / TRIGGER_INTERVAL);
         process.stdout.write("=".repeat(intervals));
