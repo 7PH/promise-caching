@@ -1,4 +1,4 @@
-import {PromiseCaching} from "../src/index";
+import {PromiseCaching} from "../src";
 
 const RETURN_EXPIRED: boolean = false;
 

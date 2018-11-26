@@ -1,12 +1,15 @@
-# promise-caching <img src="https://api.travis-ci.com/7PH/promise-caching.svg?branch=master">
+# promise-caching
+
+<img src="https://api.travis-ci.com/7PH/promise-caching.svg?branch=master">
+
 
 Asynchronous in-memory cache-system working with promises
 
 Typical use-case: you have a function returning a promise with high computing cost.
 
-## Time chart
+## Execution chart
 
-Here is a chart of what's happening when you set 'returnExpired' to false
+Here is an execution chart of what is happening when you set 'returnExpired' to false
 
 ```text
 | ==>
@@ -15,7 +18,7 @@ Here is a chart of what's happening when you set 'returnExpired' to false
 |    >
 |     >
 |      ==>
-|       >
+|       =>
 |        >
 ```
 
@@ -30,6 +33,12 @@ When you set 'returnExpired' to true, retrieving an expired promise won't hang. 
 |      >
 |       >
 |        >
+```
+
+To build these execution charts, use 
+
+```bash
+npm run execution-chart
 ```
 
 ## Usage
