@@ -13,7 +13,7 @@
     "scripts": {
         "clean": "rm -rf ./dist;",
         "build": "npm run clean; tsc;",
-        "test": "npm run build; mocha dist/tests/test.js"
+        "test": "npm run build; mocha dist/test/test.js"
     },
     "repository": {
         "type": "git",
