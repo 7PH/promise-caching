@@ -12,8 +12,9 @@
     },
     "scripts": {
         "clean": "rm -rf ./dist;",
-        "build": "npm run clean; tsc;",
-        "test": "npm run build; mocha dist/test/test.js"
+        "build": "npm run clean && tsc",
+        "test": "npm run build && mocha dist/test/test.js",
+        "execution-chart": "npm run build && node dist/test/execution-chart.js"
     },
     "repository": {
         "type": "git",

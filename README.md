@@ -4,13 +4,33 @@ Asynchronous in-memory cache-system working with promises
 
 Typical use-case: you have a function returning a promise with high computing cost.
 
-## time chart
+## Time chart
 
 Here is a chart of what's happening when you set 'returnExpired' to false
 
-![Time chart](/doc/time-chart.png?raw=true "Time chart")
+```text
+| ==>
+|  =>
+|   >
+|    >
+|     >
+|      ==>
+|       >
+|        >
+```
 
 When you set 'returnExpired' to true, retrieving an expired promise won't hang. Instead, it will return the expired promise and regenerate a new result in background.
+
+```text
+| ==>
+|  =>
+|   >
+|    >
+|     >
+|      >
+|       >
+|        >
+```
 
 ## Usage
 
