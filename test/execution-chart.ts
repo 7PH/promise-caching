@@ -1,13 +1,13 @@
 import {PromiseCaching} from "../src";
 
-const RETURN_EXPIRED: boolean = true;
+const RETURN_EXPIRED: boolean = (process.env.RETURN_EXPIRED || "") == "true";
 
 const EXPIRE: number = 50;
 const RESOLVE_DURATION: number = 50;
 const TRIGGER_INTERVAL: number = 12;
-const TEST_DURATION: number = 180;
+const TEST_DURATION: number = 200;
 const KEY: string = 'THEKEY';
-const durations: number[] = [];
+const durations: {duration: number, value: number}[] = [];
 
 let cache: PromiseCaching = new PromiseCaching({returnExpired: RETURN_EXPIRED});
 
@@ -17,8 +17,11 @@ let cache: PromiseCaching = new PromiseCaching({returnExpired: RETURN_EXPIRED});
  *
  * @param ms
  */
-async function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve.bind(this), ms));
+let INTERNAL_COUNTER: number = 0;
+async function sleep(ms: number): Promise<number> {
+    return new Promise<number>(resolve =>
+        setTimeout(() =>
+            resolve(++ INTERNAL_COUNTER), ms));
 }
 
 /**
@@ -26,9 +29,10 @@ async function sleep(ms: number) {
  */
 async function trigger() {
 
-    const index: number = durations.push(Date.now()) - 1;
-    await cache.get(KEY, EXPIRE, sleep.bind(this, RESOLVE_DURATION));
-    durations[index] = Date.now() - durations[index];
+    const index: number = durations.push({duration: Date.now(), value: 0}) - 1;
+    const value: number = await cache.get<number>(KEY, EXPIRE, sleep.bind(this, RESOLVE_DURATION));
+    durations[index].duration = Date.now() - durations[index].duration;
+    durations[index].value = value;
 }
 
 /**
@@ -53,9 +57,10 @@ function printResult() {
 
         process.stdout.write(" " + formatId(i) + "   | ");
         process.stdout.write(" ".repeat(i));
-        const intervals: number = Math.floor(durations[i] / TRIGGER_INTERVAL);
+        const intervals: number = Math.floor(durations[i].duration / TRIGGER_INTERVAL);
         process.stdout.write("=".repeat(intervals));
         process.stdout.write(">");
+        process.stdout.write(durations[i].value.toString());
         process.stdout.write("\n");
     }
 }

@@ -13,48 +13,53 @@ Here is an execution chart of what is happening when you set 'returnExpired' to 
 
 ```text
  [id] |-------------> time
-  0   | ====>
-  1   |  ===>
-  2   |   ==>
-  3   |    =>
-  4   |     >
-  5   |      >
-  6   |       >
-  7   |        >
-  8   |         >
-  9   |          ====>
- 10   |           ===>
- 11   |            ==>
- 12   |             =>
- 13   |              >
- 14   |               >
+  0   | ====>1
+  1   |  ===>1
+  2   |   ==>1
+  3   |    =>1
+  4   |     >1
+  5   |      >1
+  6   |       >1
+  7   |        >1
+  8   |         >1
+  9   |          ====>2
+ 10   |           ===>2
+ 11   |            ==>2
+ 12   |             =>2
+ 13   |              >2
+ 14   |               >2
+ 15   |                >2
+ 16   |                 >2
 ```
 
 When you set 'returnExpired' to true, retrieving an expired promise won't hang. Instead, it will return the expired promise and regenerate a new result in background.
 
 ```text
  [id] |-------------> time
-  0   | ====>
-  1   |  ===>
-  2   |   ==>
-  3   |    =>
-  4   |     >
-  5   |      >
-  6   |       >
-  7   |        >
-  8   |         >
-  9   |          >
- 10   |           >
- 11   |            >
- 12   |             >
- 13   |              >
- 14   |               >
+  0   | ====>1
+  1   |  ===>1
+  2   |   ==>1
+  3   |    =>1
+  4   |     >1
+  5   |      >1
+  6   |       >1
+  7   |        >1
+  8   |         >1
+  9   |          >1
+ 10   |           >1
+ 11   |            >1
+ 12   |             >1
+ 13   |              >1
+ 14   |               >2
+ 15   |                >2
+ 16   |                 >2
 ```
 
 To build these execution charts, use 
 
 ```bash
-npm run execution-chart
+RETURN_EXPIRED=false    npm run execution-chart
+RETURN_EXPIRED=true     npm run execution-chart
 ```
 
 ## Usage
